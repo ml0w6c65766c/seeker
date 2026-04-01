@@ -11,7 +11,7 @@ const TABS = [
   { id: 'news', label: 'News' },
   { id: 'cves', label: 'CVEs' },
   { id: 'about', label: 'About' },
-  { id: 'quellen', label: 'Quellen' },
+  { id: 'quellen', label: 'Sources' },
 ];
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
