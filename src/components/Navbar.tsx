@@ -18,8 +18,12 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <Search className="h-6 w-6 text-primary" />
+        <div className="flex items-center gap-4 -ml-4">
+          <img
+            src="public/logo.jpg"
+            alt="Seeker Logo"
+            className="h-9 w-9 rounded-sm object-cover"
+          />
           <span className="text-lg font-semibold text-foreground">Seeker</span>
         </div>
         

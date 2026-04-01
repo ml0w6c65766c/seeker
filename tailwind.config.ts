@@ -57,6 +57,7 @@ export default {
           low: "hsl(var(--severity-low))",
           info: "hsl(var(--severity-info))",
         },
+        "heise-tag": "hsl(var(--heise-tag))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

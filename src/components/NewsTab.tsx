@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const SOURCE_COLORS: Record<string, string> = {
-  'Heise Security': 'bg-primary/10 text-primary',
+  'Heise Security': 'bg-heise-tag/10 text-heise-tag',
   'BleepingComputer': 'bg-severity-high/10 text-severity-high',
   'The Hacker News': 'bg-severity-low/10 text-severity-low',
 };

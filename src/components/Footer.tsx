@@ -10,7 +10,7 @@ export const Footer = () => {
           {/* Left side - GitHub link */}
           <div className="flex items-center gap-2">
             <a
-              href="https://github.com"
+              href="https://github.com/ml0w6c65766c/seeker"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -21,8 +21,7 @@ export const Footer = () => {
 
           {/* Center - Copyright */}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span>© {currentYear} Seeker</span>
-            <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+            <span>© {currentYear} Seeker made by M</span>
           </div>
 
           {/* Right side - Links */}

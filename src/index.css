@@ -15,7 +15,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    --primary: 217 71% 45%;
+    --primary: 0 0% 20%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 214 20% 94%;
@@ -32,7 +32,7 @@
 
     --border: 214 20% 90%;
     --input: 214 20% 90%;
-    --ring: 217 71% 45%;
+    --ring: 0 0% 20%;
 
     --radius: 0.625rem;
 
@@ -44,14 +44,16 @@
 
     --badge-new: 217 71% 45%;
 
+    --heise-tag: 217 71% 45%;
+
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 0% 15%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 0 0% 20%;
   }
 
   .dark {
@@ -64,7 +66,7 @@
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 92%;
 
-    --primary: 217 71% 53%;
+    --primary: 0 0% 25%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 12%;
@@ -81,7 +83,7 @@
 
     --border: 0 0% 14%;
     --input: 0 0% 14%;
-    --ring: 217 71% 53%;
+    --ring: 0 0% 25%;
 
     --severity-critical: 0 72% 55%;
     --severity-high: 25 95% 58%;
@@ -91,14 +93,16 @@
 
     --badge-new: 217 71% 53%;
 
+    --heise-tag: 217 71% 53%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-primary: 0 0% 15%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent-foreground: 0 0% 95.9%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 0 0% 25%;
   }
 }
 
