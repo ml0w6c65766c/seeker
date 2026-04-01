@@ -20,7 +20,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4 -ml-4">
           <img
-            src="public/logo.jpg"
+            src="logo.jpg"
             alt="Seeker Logo"
             className="h-9 w-9 rounded-sm object-cover"
           />

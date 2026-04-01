@@ -35,7 +35,6 @@ export function CVEsTab() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('date');
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
-  const [sourceFilter, setSourceFilter] = useState<string>('ALL');
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
     const saved = localStorage.getItem('cve-bookmarks');
     return saved ? new Set(JSON.parse(saved)) : new Set();
@@ -59,12 +58,9 @@ export function CVEsTab() {
     return () => clearInterval(interval);
   }, [loadCVEs]);
 
-  const sources = useMemo(() => [...new Set(cves.map(c => c.source))], [cves]);
-
   const filtered = useMemo(() => {
     let result = cves;
     if (severityFilter !== 'ALL') result = result.filter(c => c.severity === severityFilter);
-    if (sourceFilter !== 'ALL') result = result.filter(c => c.source === sourceFilter);
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(c =>
@@ -77,7 +73,7 @@ export function CVEsTab() {
       result = [...result].sort((a, b) => (SEVERITY_ORDER[b.severity] || 0) - (SEVERITY_ORDER[a.severity] || 0));
     }
     return result;
-  }, [cves, severityFilter, sourceFilter, search, sortBy]);
+  }, [cves, severityFilter, search, sortBy]);
 
   const toggleBookmark = (id: string) => {
     setBookmarks(prev => {
@@ -140,14 +136,6 @@ export function CVEsTab() {
             <option value="UNKNOWN">Unknown</option>
           </select>
           <select
-            value={sourceFilter}
-            onChange={e => setSourceFilter(e.target.value)}
-            className="rounded-md border bg-background px-3 py-2 text-sm"
-          >
-            <option value="ALL">All Sources</option>
-            {sources.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as SortBy)}
             className="rounded-md border bg-background px-3 py-2 text-sm"
@@ -183,7 +171,6 @@ export function CVEsTab() {
                     {SEVERITY_LABELS[cve.severity]}
                     {cve.cvssScore !== null && ` (${cve.cvssScore})`}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">{cve.source}</span>
                 </div>
                 <a
                   href={cve.link}

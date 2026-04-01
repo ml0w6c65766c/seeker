@@ -19,24 +19,14 @@ const SOURCES = [
     description: 'World-leading cybersecurity news platform focusing on threats and security trends.',
     category: 'News',
   },
-  {
-    name: 'BSI CERT-Bund',
-    url: 'https://www.bsi.bund.de/DE/Themen/Unternehmen-und-Organisationen/Cyber-Sicherheitslage/Technische-Sicherheitshinweise/technische-sicherheitshinweise_node.html',
-    description: 'The Computer Emergency Response Team of the Federal Office for Information Security (BSI).',
-    category: 'CVEs',
-  },
+  
   {
     name: 'NVD – National Vulnerability Database',
     url: 'https://nvd.nist.gov/',
     description: 'The US database for standardized vulnerability information (CVEs) with CVSS ratings.',
     category: 'CVEs',
   },
-  {
-    name: 'CISA KEV – Known Exploited Vulnerabilities',
-    url: 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog',
-    description: 'CISA catalog of actively exploited vulnerabilities that pose an immediate threat.',
-    category: 'CVEs',
-  },
+  
 ];
 
 export function SourcesTab() {

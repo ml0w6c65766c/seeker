@@ -9,7 +9,7 @@ const FEATURES = [
   {
     icon: ShieldAlert,
     title: 'CVE Overview',
-    description: 'Current vulnerabilities from NVD, CISA KEV and BSI CERT-Bund with filtering by severity and source.',
+    description: 'Current vulnerabilities from NVD with filtering by severity.',
   },
   {
     icon: Users,
