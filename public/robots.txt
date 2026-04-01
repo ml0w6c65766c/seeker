@@ -1,14 +1,20 @@
-User-agent: Googlebot
-Allow: /
+   _____           __            
+  / ___/___  ___  / /_____  _____
+  \__ \/ _ \/ _ \/ //_/ _ \/ ___/
+ ___/ /  __/  __/ ,< /  __/ /    
+/____/\___/\___/_/|_|\___/_/  
+made by M
 
-User-agent: Bingbot
-Allow: /
+# If you're reading this, go look somewhere else, there's nothing to be found here :)
 
-User-agent: Twitterbot
-Allow: /
 
-User-agent: facebookexternalhit
-Allow: /
+# robots.txt
+
+# Allow all crawlers full access to the site
 
 User-agent: *
 Allow: /
+
+
+# Optional: specify sitemap location if available
+# Sitemap: https://yourdomain.com/sitemap.xml
