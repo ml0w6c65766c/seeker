@@ -28,7 +28,8 @@ export function AboutTab() {
         <h1 className="text-3xl font-bold text-foreground mb-2">Seeker</h1>
         <p className="mt-3 text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
           Seeker aggregates the most important cybersecurity news and vulnerability information
-          in one place,clear, and free. <span className="font-semibold text-primary">My mission is to provide a platform where you can check in every morning or anytime and get all the latest news and info at a glance.</span>
+          in one place,clear, and free.
+          My mission is to provide a platform where you can check in every morning or anytime and get all the latest news and info at a glance.
         </p>
       </div>
 
