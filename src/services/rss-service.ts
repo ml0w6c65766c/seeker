@@ -19,33 +19,52 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://feeds.feedburner.com/TheHackersNews', source: 'The Hacker News' },
 ];
 
-// Removed unreliable CORS proxies - only use Netlify function
-
-// Removed broken proxy tracking - only using Netlify function
+const CORS_PROXIES = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
+  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
 
 async function fetchWithProxy(url: string): Promise<string> {
-  // Only use Netlify function for production deployment
+  // Try direct fetch (may fail due CORS in browser)
   try {
-    console.log(`Loading RSS via Netlify function: ${url}`);
-    const response = await fetch('/.netlify/functions/rss', {
-      signal: AbortSignal.timeout(30000),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+    const normal = await fetch(url, { signal: AbortSignal.timeout(20000) });
+    if (normal.ok) {
+      const text = await normal.text();
+      if (text && (text.includes('<rss') || text.includes('<feed') || text.includes('<channel') || text.includes('<entry'))) {
+        return text;
       }
-    });
-
-    if (response.ok) {
-      const allNews: NewsItem[] = await response.json();
-      console.log(`✓ Netlify function successful, got ${allNews.length} items`);
-      return JSON.stringify({ items: allNews });
-    } else {
-      throw new Error(`Netlify function returned ${response.status}: ${response.statusText}`);
     }
   } catch (error) {
-    console.warn(`Netlify function failed:`, error.message);
-    throw error;
+    console.debug('Direct fetch failed, using proxy:', error?.message || error);
   }
+
+  // Fallback to CORS proxies
+  for (const proxyFn of CORS_PROXIES) {
+    const proxyUrl = proxyFn(url);
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(25000) });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const text = await response.text();
+        if (!text || (!text.includes('<rss') && !text.includes('<feed') && !text.includes('<channel') && !text.includes('<entry'))) {
+          throw new Error('Invalid RSS content from proxy');
+        }
+
+        console.log(`Proxy success: ${proxyUrl} (${attempt})`);
+        return text;
+      } catch (error) {
+        console.warn(`Proxy attempt ${attempt} failed for ${proxyUrl}:`, error?.message || error);
+        await new Promise(res => setTimeout(res, 1000 * attempt));
+      }
+    }
+  }
+
+  throw new Error(`Alle CORS-Proxies fehlgeschlagen für ${url}`);
 }
 
 function stripHtml(html: string): string {
@@ -207,28 +226,45 @@ export async function fetchAllNews(force = false): Promise<NewsItem[]> {
 
   fetchPromise = (async () => {
     try {
-      console.log('Lade RSS-Feeds über Netlify-Funktion...');
+      console.log('Lade RSS-Feeds über Netlify-Funktion (Primary) ...');
 
-      // Only use Netlify function for production deployment
-      const response = await fetch('/.netlify/functions/rss', {
-        signal: AbortSignal.timeout(30000),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+      let allNews: NewsItem[] = [];
+      try {
+        const response = await fetch('/api/rss', {
+          signal: AbortSignal.timeout(30000),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          allNews = await response.json();
+          console.log(`✓ Netlify API successful, got ${allNews.length} items`);
+        } else {
+          console.warn(`Netlify API returned ${response.status}, fallback to direct feed parsing.`);
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Netlify function returned ${response.status}: ${response.statusText}`);
+      } catch (fnError) {
+        console.warn('Netlify API request failed, fallback to direct feed parsing:', fnError.message);
       }
 
-      let allNews: NewsItem[] = await response.json();
-      console.log(`✓ Netlify function successful, got ${allNews.length} items`);
+      if (allNews.length === 0) {
+        console.log('Fallback lädt Feeds einzeln mit CORS-Proxies ...');
+        const results = await Promise.allSettled(FEEDS.map(feed => fetchFeed(feed)));
+        allNews = results
+          .filter((r): r is PromiseFulfilledResult<NewsItem[]> => r.status === 'fulfilled')
+          .flatMap(r => r.value)
+          .filter(item => item && item.title && item.link);
 
-      // Convert publishedAt strings to Date objects
+        const failedCount = results.filter(r => r.status === 'rejected').length;
+        const successCount = results.filter(r => r.status === 'fulfilled' && r.value.length > 0).length;
+        console.log(`Fallback Feeds geladen: ${allNews.length} aus ${successCount}/${FEEDS.length} (${failedCount} Fehler)`);
+      }
+
+      // Convert publishedAt strings to Date objects if needed
       allNews = allNews.map(item => ({
         ...item,
-        publishedAt: new Date(item.publishedAt)
+        publishedAt: item.publishedAt instanceof Date ? item.publishedAt : new Date(item.publishedAt)
       }));
 
       // Sort by date, newest first
@@ -242,19 +278,22 @@ export async function fetchAllNews(force = false): Promise<NewsItem[]> {
         });
       }
 
-      console.log(`✓ Gesamt: ${allNews.length} News geladen`);
+      if (allNews.length === 0 && cachedNews.length > 0) {
+        console.log('Keine aktuellen News konnten geladen werden, gebe Cache zurück.');
+        return cachedNews;
+      }
 
       cachedNews = allNews;
       lastFetch = now;
+      console.log(`✓ Gesamt: ${allNews.length} News geladen`);
       return allNews;
     } catch (error) {
       console.error('Fehler beim Abrufen aller News:', error);
-      // Return cached data even if fetch failed, for better stability
       if (cachedNews.length > 0) {
         console.log('Verwende gecachte Daten trotz Fehler');
         return cachedNews;
       }
-      throw error; // Only throw if no cache available
+      throw error;
     } finally {
       isFetching = false;
       fetchPromise = null;

@@ -6,3 +6,13 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
