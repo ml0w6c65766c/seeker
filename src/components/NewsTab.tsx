@@ -26,13 +26,15 @@ export function NewsTab() {
   const loadNews = useCallback(async (force = false) => {
     try {
       setError(null);
+      if (force) setLoading(true);
       const data = await fetchAllNews(force);
       setNews(data);
       if (data.length === 0) {
         setError('Keine Feeds erreichbar. Bitte versuche es später erneut.');
       }
-    } catch {
-      setError('Fehler beim Laden der News.');
+    } catch (err) {
+      console.error('Error loading news:', err);
+      setError('Fehler beim Laden der News. Prüfe deine Internetverbindung.');
     } finally {
       setLoading(false);
     }

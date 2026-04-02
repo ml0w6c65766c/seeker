@@ -1,8 +1,8 @@
-export interface NewsItem {
+interface RawNewsItem {
   id: string;
   title: string;
   source: string;
-  publishedAt: Date;
+  publishedAt: string;
   description: string;
   link: string;
   isNew?: boolean;
@@ -19,52 +19,33 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://feeds.feedburner.com/TheHackersNews', source: 'The Hacker News' },
 ];
 
-// Multiple CORS proxies for reliability (fallback for development)
-const CORS_PROXIES = [
-  (url: string) => `https://cors-anywhere.herokuapp.com/${url}`,
-  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url: string) => `https://corsproxy.org/?${encodeURIComponent(url)}`,
-  (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
-];
+// Removed unreliable CORS proxies - only use Netlify function
+
+// Removed broken proxy tracking - only using Netlify function
 
 async function fetchWithProxy(url: string): Promise<string> {
-  // Try Netlify Function first (for production)
-  if (typeof window !== 'undefined') {
-    const functionUrls = ['/.netlify/functions/rss', '/api/rss'];
-    for (const functionUrl of functionUrls) {
-      try {
-        const response = await fetch(functionUrl, { signal: AbortSignal.timeout(15000) });
-        if (response.ok) {
-          const allNews: NewsItem[] = await response.json();
-          const source = FEEDS.find(f => f.url === url)?.source;
-          const filteredNews = allNews.filter(item => item.source === source);
-          return JSON.stringify({ items: filteredNews });
-        }
-      } catch (error) {
-        console.warn(`Netlify function failed (${functionUrl}), falling back to proxies:`, error);
+  // Only use Netlify function for production deployment
+  try {
+    console.log(`Loading RSS via Netlify function: ${url}`);
+    const response = await fetch('/.netlify/functions/rss', {
+      signal: AbortSignal.timeout(30000),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
-    }
-  }
+    });
 
-  // Fallback to CORS proxies
-  for (const proxyFn of CORS_PROXIES) {
-    try {
-      const proxyUrl = proxyFn(url);
-      const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-      if (!response.ok) continue;
-      const text = await response.text();
-      // Check if the response is actually XML (not an error page)
-      if (text.includes('<html') && !text.includes('<rss') && !text.includes('<feed') && !text.includes('<channel')) {
-        console.warn(`Proxy returned HTML error for ${url}, trying next...`);
-        continue;
-      }
-      return text;
-    } catch (error) {
-      console.warn(`Proxy failed for ${url}:`, error);
-      continue;
+    if (response.ok) {
+      const allNews: NewsItem[] = await response.json();
+      console.log(`✓ Netlify function successful, got ${allNews.length} items`);
+      return JSON.stringify({ items: allNews });
+    } else {
+      throw new Error(`Netlify function returned ${response.status}: ${response.statusText}`);
     }
+  } catch (error) {
+    console.warn(`Netlify function failed:`, error.message);
+    throw error;
   }
-  throw new Error(`Alle Proxies fehlgeschlagen für: ${url}`);
 }
 
 function stripHtml(html: string): string {
@@ -125,7 +106,7 @@ async function fetchFeed(config: FeedConfig): Promise<NewsItem[]> {
       try {
         const jsonData = JSON.parse(text);
         if (jsonData.items && Array.isArray(jsonData.items)) {
-          return jsonData.items.map((item: any) => ({
+          return jsonData.items.map((item: RawNewsItem) => ({
             ...item,
             publishedAt: new Date(item.publishedAt),
             isNew: isNewItem(item.publishedAt)
@@ -150,6 +131,11 @@ async function fetchFeed(config: FeedConfig): Promise<NewsItem[]> {
     let items = xml.querySelectorAll('item');
     if (items.length === 0) {
       items = xml.querySelectorAll('entry');
+    }
+
+    if (items.length === 0) {
+      console.warn(`${config.source}: Keine Artikel gefunden - möglicherweise ungültiges Format`);
+      return [];
     }
 
     console.log(`${config.source}: ${items.length} Artikel gefunden`);
@@ -193,32 +179,87 @@ async function fetchFeed(config: FeedConfig): Promise<NewsItem[]> {
 
 let cachedNews: NewsItem[] = [];
 let lastFetch = 0;
-const CACHE_DURATION = 0; // Kein Cache, immer aktuelle News laden
+let isFetching = false;
+let fetchPromise: Promise<NewsItem[]> | null = null;
+const CACHE_DURATION = 60000; // 1 Minute Cache für bessere Performance
+const BACKGROUND_REFRESH_THRESHOLD = 30000; // 30 Sekunden - wenn Cache älter, starte Hintergrund-Refresh
 
 export async function fetchAllNews(force = false): Promise<NewsItem[]> {
   const now = Date.now();
+
+  // Return cached data if still valid and not forced
   if (!force && cachedNews.length > 0 && now - lastFetch < CACHE_DURATION) {
+    // Start background refresh if cache is getting old
+    if (now - lastFetch > BACKGROUND_REFRESH_THRESHOLD && !isFetching) {
+      console.log('Starte Hintergrund-Refresh für RSS-Feeds...');
+      fetchAllNews(true).catch(error => console.warn('Hintergrund-Refresh fehlgeschlagen:', error));
+    }
     return cachedNews;
   }
 
-  // Fetch all feeds in parallel, each with independent error handling
-  const results = await Promise.all(FEEDS.map(feed => fetchFeed(feed)));
-  const allNews = results.flat();
-
-  // Sort by date, newest first
-  allNews.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
-
-  // Mark items as new if they weren't in the previous cache
-  if (cachedNews.length > 0) {
-    const oldIds = new Set(cachedNews.map(n => n.id));
-    allNews.forEach(item => {
-      item.isNew = !oldIds.has(item.id);
-    });
+  // Prevent duplicate concurrent requests
+  if (isFetching && fetchPromise) {
+    console.log('Fetch bereits in Bearbeitung, warte auf Ergebnis...');
+    return fetchPromise;
   }
 
-  console.log(`Gesamt: ${allNews.length} News geladen aus ${results.filter(r => r.length > 0).length}/${FEEDS.length} Feeds`);
+  isFetching = true;
 
-  cachedNews = allNews;
-  lastFetch = now;
-  return allNews;
+  fetchPromise = (async () => {
+    try {
+      console.log('Lade RSS-Feeds über Netlify-Funktion...');
+
+      // Only use Netlify function for production deployment
+      const response = await fetch('/.netlify/functions/rss', {
+        signal: AbortSignal.timeout(30000),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Netlify function returned ${response.status}: ${response.statusText}`);
+      }
+
+      let allNews: NewsItem[] = await response.json();
+      console.log(`✓ Netlify function successful, got ${allNews.length} items`);
+
+      // Convert publishedAt strings to Date objects
+      allNews = allNews.map(item => ({
+        ...item,
+        publishedAt: new Date(item.publishedAt)
+      }));
+
+      // Sort by date, newest first
+      allNews.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+
+      // Mark items as new if they weren't in the previous cache
+      if (cachedNews.length > 0) {
+        const oldIds = new Set(cachedNews.map(n => n.id));
+        allNews.forEach(item => {
+          item.isNew = !oldIds.has(item.id);
+        });
+      }
+
+      console.log(`✓ Gesamt: ${allNews.length} News geladen`);
+
+      cachedNews = allNews;
+      lastFetch = now;
+      return allNews;
+    } catch (error) {
+      console.error('Fehler beim Abrufen aller News:', error);
+      // Return cached data even if fetch failed, for better stability
+      if (cachedNews.length > 0) {
+        console.log('Verwende gecachte Daten trotz Fehler');
+        return cachedNews;
+      }
+      throw error; // Only throw if no cache available
+    } finally {
+      isFetching = false;
+      fetchPromise = null;
+    }
+  })();
+
+  return fetchPromise;
 }
