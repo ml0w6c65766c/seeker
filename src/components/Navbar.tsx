@@ -2,6 +2,7 @@ import { Search } from 'lucide-react';
 import { ExternalLink } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useState } from 'react';
+import { Menu } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -33,8 +34,16 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
           />
           <span className="text-lg font-semibold text-foreground">Seeker</span>
         </div>
-        
-        <nav className="flex items-center gap-1">
+
+        <button
+          className="md:hidden focus:outline-none"
+          onClick={toggleMenu}
+          aria-label="Toggle navigation menu"
+        >
+          <Menu className="h-6 w-6 text-foreground" />
+        </button>
+
+        <nav className="hidden md:flex items-center gap-1">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -62,32 +71,28 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
           </div>
         </nav>
       </div>
+
       <div
-        className={`md:flex md:items-center md:justify-between ${
-          isOpen ? 'block' : 'hidden'
-        }`}
+        className={`md:hidden ${isOpen ? 'block' : 'hidden'} bg-card p-4`}
       >
-        <ul className="space-y-2 md:space-y-0 md:flex md:space-x-4">
-          <li>
-            <a href="#" className="hover:text-gray-400">
-              Home
-            </a>
-          </li>
-          <li>
-            <a href="#" className="hover:text-gray-400">
-              About
-            </a>
-          </li>
-          <li>
-            <a href="#" className="hover:text-gray-400">
-              Services
-            </a>
-          </li>
-          <li>
-            <a href="#" className="hover:text-gray-400">
-              Contact
-            </a>
-          </li>
+        <ul className="space-y-2">
+          {TABS.map(tab => (
+            <li key={tab.id}>
+              <button
+                onClick={() => {
+                  onTabChange(tab.id);
+                  setIsOpen(false);
+                }}
+                className={`block w-full text-left rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                {tab.label}
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
     </header>

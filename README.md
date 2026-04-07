@@ -8,7 +8,7 @@ Seeker is a web application that aggregates and displays the latest cybersecurit
 - **CVE Tracking**: View detailed information about recent vulnerabilities and exposures.
 - **RSS Feed Integration**: Aggregate and display RSS feeds from multiple trusted sources.
 - **Responsive Design**: Optimized for both mobile and desktop devices.
-- **Dynamic Navigation**: Includes a dropdown menu for seamless mobile navigation.
+- **Dynamic Navigation**: Includes a dropdown menu for seamless navigation across all devices.
 - **Customizable Themes**: Toggle between light and dark modes for better user experience.
 - **Search Functionality**: Quickly find relevant news or CVE details.
 - **Modular Components**: Built with reusable and maintainable React components.
