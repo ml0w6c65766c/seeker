@@ -1,6 +1,7 @@
 import { Search } from 'lucide-react';
 import { ExternalLink } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { useState } from 'react';
 
 interface NavbarProps {
   activeTab: string;
@@ -15,6 +16,12 @@ const TABS = [
 ];
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -54,6 +61,34 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
             <ThemeToggle />
           </div>
         </nav>
+      </div>
+      <div
+        className={`md:flex md:items-center md:justify-between ${
+          isOpen ? 'block' : 'hidden'
+        }`}
+      >
+        <ul className="space-y-2 md:space-y-0 md:flex md:space-x-4">
+          <li>
+            <a href="#" className="hover:text-gray-400">
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="#" className="hover:text-gray-400">
+              About
+            </a>
+          </li>
+          <li>
+            <a href="#" className="hover:text-gray-400">
+              Services
+            </a>
+          </li>
+          <li>
+            <a href="#" className="hover:text-gray-400">
+              Contact
+            </a>
+          </li>
+        </ul>
       </div>
     </header>
   );
