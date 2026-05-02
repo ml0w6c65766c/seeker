@@ -3,6 +3,7 @@
 # Seeker
 
 ![Seekerr_banner](example_picture.png)
+https://seekerr.netlify.app/
 
 Seeker is a web application that aggregates and displays the latest cybersecurity news, CVE (Common Vulnerabilities and Exposures) details, and RSS feeds from various sources. It provides users with a centralized platform to stay informed about security updates and trends.
 
