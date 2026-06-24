@@ -1,9 +1,0 @@
-{
-  "name": "seeker-netlify-functions",
-  "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "node-fetch": "^3.3.2",
-    "jsdom": "^20.0.0"
-  }
-}

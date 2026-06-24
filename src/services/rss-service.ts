@@ -8,6 +8,16 @@ interface RawNewsItem {
   isNew?: boolean;
 }
 
+export interface NewsItem {
+  id: string;
+  title: string;
+  source: string;
+  publishedAt: Date;
+  description: string;
+  link: string;
+  isNew?: boolean;
+}
+
 interface FeedConfig {
   url: string;
   source: string;
@@ -72,41 +82,25 @@ function stripHtml(html: string): string {
   return doc.body.textContent?.trim() || '';
 }
 
-function timeAgo(date: Date): string {
-  // Deutsche Zeitzone verwenden
-  const now = new Date();
-  const germanTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Berlin"}));
-  const germanDate = new Date(date.toLocaleString("en-US", {timeZone: "Europe/Berlin"}));
-
-  const diffMs = germanTime.getTime() - germanDate.getTime();
-
+export function timeAgo(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
   if (diffMs < 0) return 'gerade eben';
-
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
   if (diffMinutes < 1) return 'gerade eben';
-  if (diffMinutes < 60) return `vor ${diffMinutes} Minuten`;
-  if (diffHours < 24) return `vor ${diffHours} Stunden`;
-  if (diffDays === 1) return 'vor 1 Tag';
-  return `vor ${diffDays} Tagen`;
+  if (diffMinutes < 60) return `vor ${diffMinutes} Min.`;
+  if (diffHours < 24) return `vor ${diffHours} Std.`;
+  if (diffDays === 1) return 'gestern';
+  if (diffDays < 7) return `vor ${diffDays} Tagen`;
+  return date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
 }
-
-export { timeAgo };
 
 function parseDate(dateStr: string | null | undefined): Date {
   if (!dateStr) return new Date();
   const parsed = new Date(dateStr);
-  // Validate the date is real and not in the future
-  if (isNaN(parsed.getTime())) {
-    console.warn('Ungültiges Datum:', dateStr);
-    return new Date();
-  }
-
-  // Konvertiere zu deutscher Zeitzone
-  const germanTime = new Date(parsed.toLocaleString("en-US", {timeZone: "Europe/Berlin"}));
-  return germanTime;
+  if (isNaN(parsed.getTime())) return new Date();
+  return parsed;
 }
 
 function isNewItem(publishedAt: Date): boolean {

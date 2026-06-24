@@ -1,8 +1,7 @@
-import { Search } from 'lucide-react';
 import { ExternalLink } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -19,82 +18,72 @@ const TABS = [
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
-    <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-4 -ml-4">
+    <header className="sticky top-0 z-50 border-b bg-background">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4">
+        <div className="flex items-center gap-3">
           <img
             src="logo.jpg"
             alt="Seeker Logo"
-            className="h-9 w-9 rounded-sm object-cover"
+            className="h-8 w-8 rounded object-cover"
           />
-          <span className="text-lg font-semibold text-foreground">Seeker</span>
+          <span className="font-semibold tracking-tight text-foreground">Seeker</span>
         </div>
 
-        <button
-          className="md:hidden focus:outline-none"
-          onClick={toggleMenu}
-          aria-label="Toggle navigation menu"
-        >
-          <Menu className="h-6 w-6 text-foreground" />
-        </button>
-
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-0">
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`px-4 py-4 text-sm font-medium transition-colors border-b-2 ${
                 activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
             </button>
           ))}
-          <div className="ml-2 border-l pl-2 flex items-center gap-2">
-            <a
-              href="https://github.com/ml0w6c65766c/seeker"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              title="View on GitHub"
-            >
-              <ExternalLink className="h-5 w-5" />
-            </a>
-            <ThemeToggle />
-          </div>
         </nav>
+
+        <div className="flex items-center gap-1">
+          <a
+            href="https://github.com/ml0w6c65766c/seeker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex p-2 text-muted-foreground hover:text-foreground transition-colors"
+            title="GitHub"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+          <ThemeToggle />
+          <button
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Menü"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
-      <div
-        className={`md:hidden ${isOpen ? 'block' : 'hidden'} bg-card p-4`}
-      >
-        <ul className="space-y-2">
+      {isOpen && (
+        <div className="md:hidden border-t bg-background">
           {TABS.map(tab => (
-            <li key={tab.id}>
-              <button
-                onClick={() => {
-                  onTabChange(tab.id);
-                  setIsOpen(false);
-                }}
-                className={`block w-full text-left rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                {tab.label}
-              </button>
-            </li>
+            <button
+              key={tab.id}
+              onClick={() => { onTabChange(tab.id); setIsOpen(false); }}
+              className={`block w-full px-4 py-3 text-left text-sm font-medium border-l-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-foreground text-foreground bg-muted/40'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
-        </ul>
-      </div>
+        </div>
+      )}
     </header>
   );
 }

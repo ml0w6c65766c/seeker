@@ -1,14 +1,13 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ExternalLink, RefreshCw, Newspaper, Bookmark, BookmarkCheck } from 'lucide-react';
 import { fetchAllNews, timeAgo, type NewsItem } from '@/services/rss-service';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const SOURCE_COLORS: Record<string, string> = {
-  'Heise Security': 'bg-heise-tag/10 text-heise-tag',
-  'BleepingComputer': 'bg-severity-high/10 text-severity-high',
-  'The Hacker News': 'bg-severity-low/10 text-severity-low',
+  'Heise Security': 'text-blue-600 dark:text-blue-400',
+  'BleepingComputer': 'text-orange-600 dark:text-orange-400',
+  'The Hacker News': 'text-emerald-600 dark:text-emerald-400',
 };
 
 const ALL_SOURCES = ['Heise Security', 'BleepingComputer', 'The Hacker News'];
@@ -42,7 +41,7 @@ export function NewsTab() {
 
   useEffect(() => {
     loadNews();
-    const interval = setInterval(() => loadNews(true), 60 * 1000); // Alle 60 Sekunden statt 5 Minuten
+    const interval = setInterval(() => loadNews(true), 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [loadNews]);
 
@@ -60,21 +59,14 @@ export function NewsTab() {
     return news.filter(n => n.source === sourceFilter);
   }, [news, sourceFilter]);
 
-  // Count per source for badges
-  const sourceCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    news.forEach(n => { counts[n.source] = (counts[n.source] || 0) + 1; });
-    return counts;
-  }, [news]);
-
   if (loading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="rounded-lg border bg-card p-5">
+      <div className="divide-y divide-border">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="py-4">
+            <Skeleton className="mb-2 h-3 w-24" />
             <Skeleton className="mb-2 h-5 w-3/4" />
-            <Skeleton className="mb-3 h-4 w-full" />
-            <Skeleton className="h-3 w-1/3" />
+            <Skeleton className="h-3 w-full" />
           </div>
         ))}
       </div>
@@ -83,10 +75,10 @@ export function NewsTab() {
 
   if (error && news.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-lg border bg-card p-12 text-center">
-        <Newspaper className="h-12 w-12 text-muted-foreground" />
+      <div className="flex flex-col items-center gap-4 py-20 text-center">
+        <Newspaper className="h-10 w-10 text-muted-foreground" />
         <p className="text-muted-foreground">{error}</p>
-        <Button variant="outline" onClick={() => { setLoading(true); loadNews(true); }}>
+        <Button variant="outline" size="sm" onClick={() => { setLoading(true); loadNews(true); }}>
           <RefreshCw className="mr-2 h-4 w-4" /> Erneut versuchen
         </Button>
       </div>
@@ -94,15 +86,15 @@ export function NewsTab() {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-0">
+      <div className="flex items-center justify-between border-b border-border mb-0">
+        <div className="flex items-center gap-0 -mb-px overflow-x-auto">
           <button
             onClick={() => setSourceFilter('ALL')}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
               sourceFilter === 'ALL'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                ? 'border-foreground text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             Alle ({news.length})
@@ -111,76 +103,71 @@ export function NewsTab() {
             <button
               key={source}
               onClick={() => setSourceFilter(source)}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 sourceFilter === source
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              {source} ({sourceCounts[source] || 0})
+              {source.split(' ')[0]}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => { setLoading(true); loadNews(true); }}>
-            <RefreshCw className="mr-1 h-4 w-4" /> Aktualisieren
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={() => { setLoading(true); loadNews(true); }} className="shrink-0">
+          <RefreshCw className="h-3.5 w-3.5" />
+        </Button>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-12 text-center">
-          <Newspaper className="h-12 w-12 text-muted-foreground" />
-          <p className="text-muted-foreground">Keine News aus dieser Quelle verfügbar.</p>
+        <div className="flex flex-col items-center gap-2 py-20 text-center">
+          <Newspaper className="h-10 w-10 text-muted-foreground" />
+          <p className="text-muted-foreground text-sm">Keine Artikel in dieser Kategorie.</p>
         </div>
       ) : (
-        filtered.map(item => (
-          <article
-            key={item.id}
-            className="group animate-fade-in rounded-lg border bg-card p-5 transition-shadow hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${SOURCE_COLORS[item.source] || 'bg-secondary text-secondary-foreground'}`}>
-                    {item.source}
-                  </span>
-                  {item.isNew && (
-                    <Badge className="bg-primary text-primary-foreground text-xs">Neu</Badge>
+        <div className="divide-y divide-border">
+          {filtered.map(item => (
+            <article key={item.id} className="group py-4">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-semibold ${SOURCE_COLORS[item.source] || 'text-muted-foreground'}`}>
+                      {item.source}
+                    </span>
+                    {item.isNew && (
+                      <span className="text-xs font-medium text-primary">· Neu</span>
+                    )}
+                    <span className="text-xs text-muted-foreground ml-auto">{timeAgo(item.publishedAt)}</span>
+                  </div>
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-foreground hover:text-primary transition-colors leading-snug"
+                  >
+                    {item.title}
+                    <ExternalLink className="ml-1 inline h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                  </a>
+                  {item.description && (
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                      {item.description}
+                    </p>
                   )}
                 </div>
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-base font-semibold text-foreground transition-colors hover:text-primary"
+                <button
+                  onClick={() => toggleBookmark(item.id)}
+                  className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Lesezeichen"
                 >
-                  {item.title}
-                  <ExternalLink className="ml-1 inline h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
-                </a>
-                {item.description && (
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
-                )}
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {timeAgo(item.publishedAt)}
-                </p>
+                  {bookmarks.has(item.id) ? (
+                    <BookmarkCheck className="h-4 w-4 text-foreground" />
+                  ) : (
+                    <Bookmark className="h-4 w-4" />
+                  )}
+                </button>
               </div>
-              <button
-                onClick={() => toggleBookmark(item.id)}
-                className="mt-1 shrink-0 text-muted-foreground transition-colors hover:text-primary"
-                aria-label="Lesezeichen"
-              >
-                {bookmarks.has(item.id) ? (
-                  <BookmarkCheck className="h-5 w-5 text-primary" />
-                ) : (
-                  <Bookmark className="h-5 w-5" />
-                )}
-              </button>
-            </div>
-          </article>
-        ))
+            </article>
+          ))}
+        </div>
       )}
     </div>
   );

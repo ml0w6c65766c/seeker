@@ -4,56 +4,54 @@ const SOURCES = [
   {
     name: 'Heise Security',
     url: 'https://www.heise.de/security/',
-    description: 'German-language IT security portal with current reports on vulnerabilities, attacks and data protection.',
+    description: 'Deutschsprachiges IT-Sicherheitsportal mit aktuellen Berichten zu Schwachstellen, Angriffen und Datenschutz.',
     category: 'News',
   },
   {
     name: 'BleepingComputer',
     url: 'https://www.bleepingcomputer.com/',
-    description: 'English-language news platform for cybersecurity, technology and malware analysis.',
+    description: 'Englischsprachige Newsplattform für Cybersecurity, Technologie und Malware-Analysen.',
     category: 'News',
   },
   {
     name: 'The Hacker News',
     url: 'https://thehackernews.com/',
-    description: 'World-leading cybersecurity news platform focusing on threats and security trends.',
+    description: 'Weltweit führende Cybersecurity-Newsplattform mit Fokus auf Bedrohungen und Sicherheitstrends.',
     category: 'News',
   },
-  
   {
     name: 'NVD – National Vulnerability Database',
     url: 'https://nvd.nist.gov/',
-    description: 'The US database for standardized vulnerability information (CVEs) with CVSS ratings.',
+    description: 'US-amerikanische Datenbank für standardisierte Schwachstelleninformationen (CVEs) mit CVSS-Bewertungen.',
     category: 'CVEs',
   },
-  
 ];
 
 export function SourcesTab() {
-  const newsSource = SOURCES.filter(s => s.category === 'News');
+  const newsSources = SOURCES.filter(s => s.category === 'News');
   const cveSources = SOURCES.filter(s => s.category === 'CVEs');
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-2xl space-y-8">
       <div>
-        <h2 className="mb-6 text-xl font-semibold text-foreground flex items-center gap-2">
-          <Newspaper className="h-5 w-5 text-primary" />
-          News Sources
+        <h2 className="flex items-center gap-2 font-semibold text-foreground mb-4">
+          <Newspaper className="h-4 w-4" />
+          News-Quellen
         </h2>
-        <div className="space-y-4">
-          {newsSource.map(source => (
-            <SourceCard key={source.name} {...source} />
+        <div className="divide-y divide-border border rounded">
+          {newsSources.map(source => (
+            <SourceRow key={source.name} {...source} />
           ))}
         </div>
       </div>
       <div>
-        <h2 className="mb-6 text-xl font-semibold text-foreground flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          CVE Sources
+        <h2 className="flex items-center gap-2 font-semibold text-foreground mb-4">
+          <Shield className="h-4 w-4" />
+          CVE-Quellen
         </h2>
-        <div className="space-y-4">
+        <div className="divide-y divide-border border rounded">
           {cveSources.map(source => (
-            <SourceCard key={source.name} {...source} />
+            <SourceRow key={source.name} {...source} />
           ))}
         </div>
       </div>
@@ -61,19 +59,19 @@ export function SourcesTab() {
   );
 }
 
-function SourceCard({ name, url, description }: { name: string; url: string; description: string }) {
+function SourceRow({ name, url, description }: { name: string; url: string; description: string }) {
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block rounded-xl border bg-card p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20"
+      className="group flex items-start justify-between gap-4 px-4 py-4 hover:bg-muted/40 transition-colors"
     >
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors text-lg">{name}</h3>
-        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      <div>
+        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors mb-0.5">{name}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
       </div>
-      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+      <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0 mt-0.5 transition-opacity" />
     </a>
   );
 }
